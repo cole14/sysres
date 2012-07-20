@@ -1,12 +1,12 @@
 CC=gcc
-CFLAGS=-O3
+CFLAGS=-O3 -Wall -Werror
 LDFLAGS=-lpthread
 
 .PHONY: all clean
 
 all: sysres
 
-sysres: mem_free.o print_funcs.o
+sysres: main.o print_funcs.o mem_tracker.o
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
 
 clean:
