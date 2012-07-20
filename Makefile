@@ -4,11 +4,11 @@ LDFLAGS=-lpthread
 
 .PHONY: all clean
 
-all: mem_free
+all: sysres
 
-mem_free: mem_free.o 
+sysres: mem_free.o print_funcs.o
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
 
 clean:
 	rm *.o
-	rm mem_free
+	rm sysres
