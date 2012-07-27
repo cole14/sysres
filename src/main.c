@@ -22,6 +22,7 @@ static struct option long_options[] = {
     {"help", 0, 0, 'h'},
     {"graphical", 0, 0, 'g'},
     {"poll", 1, 0, 'p'},
+    {"threshold", 1, 0, 't'},
     {0, 0, 0, 0}
 };
 
@@ -31,6 +32,7 @@ void usage(){
                     " Options are:\n");
     fprintf(stderr, "  -g%-22s display percent free in a graphical manner\n", ", --graphical");
     fprintf(stderr, "  -p%-22s repeatedly poll the memory usage every 'M' seconds\n", ", --poll=M");
+    fprintf(stderr, "  -t%-22s percent change required to print the memory usage\n", ", --threshold=T");
     fprintf(stderr, "  -h%-22s print usage\n\n", ", --help");
     fprintf(stderr, " Mandatory arguments for long options are for short options as well.\n");
     fprintf(stderr, " When in polling mode press 'q' to quit.\n");
@@ -40,6 +42,7 @@ int main(int argc, char *argv[]){
     char buf;
     char opt;
     long int poll_time;
+    double threshold;
     struct tracker_arg *track;
 
     if(!(track = malloc(sizeof(struct tracker_arg)))){
@@ -49,9 +52,10 @@ int main(int argc, char *argv[]){
 
     track->print_func = print_free_default;
     track->poll = 0;
+    track->print_threshold = 0.01;
 
     // Parse command-line args
-    while(-1 != (opt = getopt_long(argc, argv, "gp:h", long_options, NULL))){
+    while(-1 != (opt = getopt_long(argc, argv, "gp:t:h", long_options, NULL))){
         switch(opt){
             case 'g':
                 track->print_func = print_free_visual;
@@ -69,6 +73,15 @@ int main(int argc, char *argv[]){
                     exit(EINVAL);
                 }
                 track->poll = (unsigned int)poll_time;
+                break;
+            case 't':
+                threshold = strtod(optarg, NULL);
+                if(threshold >= 100.0 || threshold <= 0.0){
+                    fprintf(stderr, "Printing threshold %.2lf invalid! Threshold must be between 0%% and 100%%\n", threshold);
+                    usage();
+                    exit(EINVAL);
+                }
+                track->print_threshold = threshold / 100.0;
                 break;
             case 'h':
             case '?':

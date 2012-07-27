@@ -35,7 +35,7 @@ void *mem_tracker(void *arg){
 
         long diff = avail_phys_pages - p_avail_phys_pages;
         diff = (diff < 0) ? -diff : diff;
-        if((double)diff / (double)phys_pages > 0.01){// Only print if a change greater than 1%
+        if((double)diff / (double)phys_pages > track.print_threshold){
             // Get the current time
             time(&t);
             t_str = ctime(&t);
