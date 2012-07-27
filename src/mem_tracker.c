@@ -4,12 +4,14 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <limits.h>
 
 #include "mem_tracker.h"
 
 void *mem_tracker(void *arg){
     long phys_pages = 0;
-    long avail_phys_pages, p_avail_phys_pages = 0;
+    long avail_phys_pages = 0;
+    long p_avail_phys_pages = LONG_MAX;
 
     // Used in printing the time
     time_t t = 0;
