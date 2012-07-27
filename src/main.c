@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
 
     track->print_func = print_free_default;
     track->poll = 0;
-    track->print_threshold = 0.01;
+    track->print_threshold = -1.0;
 
     // Parse command-line args
     while(-1 != (opt = getopt_long(argc, argv, "gp:t:h", long_options, NULL))){
