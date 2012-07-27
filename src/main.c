@@ -31,7 +31,7 @@ void usage(){
                     "Display memory usage\n\n"
                     " Options are:\n");
     fprintf(stderr, "  -g%-22s display percent free in a graphical manner\n", ", --graphical");
-    fprintf(stderr, "  -p%-22s repeatedly poll the memory usage every 'M' seconds\n", ", --poll=M");
+    fprintf(stderr, "  -p%-22s repeatedly poll the memory usage every 'M' seconds (Decimals permitted)\n", ", --poll=M");
     fprintf(stderr, "  -t%-22s percent change required to print the memory usage\n", ", --threshold=T");
     fprintf(stderr, "  -h%-22s print usage\n\n", ", --help");
     fprintf(stderr, " Mandatory arguments for long options are for short options as well.\n");
@@ -41,7 +41,7 @@ void usage(){
 int main(int argc, char *argv[]){
     char buf;
     char opt;
-    long int poll_time;
+    double poll_time;
     double threshold;
     struct tracker_arg *track;
 
@@ -61,18 +61,19 @@ int main(int argc, char *argv[]){
                 track->print_func = print_free_visual;
                 break;
             case 'p':
-                poll_time = strtol(optarg, NULL, 10);
-                if(poll_time <= 0){
-                    fprintf(stderr, "Polling time %ld invalid!\n", poll_time);
+                poll_time = strtod(optarg, NULL);
+                if(poll_time <= 0.0){
+                    fprintf(stderr, "Polling time %.2lf invalid! Polling time must be positive\n", poll_time);
                     usage();
                     exit(EINVAL);
                 }
-                if(poll_time >= UINT_MAX){
-                    fprintf(stderr, "Polling time of %ld seconds is too long!\n", poll_time);
+                poll_time *= 1000000.0;
+                if(poll_time > (double)ULONG_MAX){
+                    fprintf(stderr, "Polling time %.2lf invalid! Polling time is too large\n", poll_time);
                     usage();
                     exit(EINVAL);
                 }
-                track->poll = (unsigned int)poll_time;
+                track->poll = (unsigned long)(poll_time);
                 break;
             case 't':
                 threshold = strtod(optarg, NULL);

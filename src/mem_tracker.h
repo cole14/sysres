@@ -7,7 +7,7 @@ void *mem_tracker(void *arg);
 
 struct tracker_arg{
     print_func_t print_func;
-    unsigned int poll;
+    unsigned long poll;
     double print_threshold;
 };
 

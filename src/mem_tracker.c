@@ -47,7 +47,7 @@ void *mem_tracker(void *arg){
             p_avail_phys_pages = avail_phys_pages;
         }
 
-        sleep(track.poll);
+        usleep(track.poll);
     }while(track.poll);
 
     return 0;
