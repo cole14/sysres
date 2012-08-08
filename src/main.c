@@ -6,9 +6,9 @@
 #include <termios.h>
 #include <time.h>
 #include <limits.h>
-#include <errno.h>
 
 #define _GNU_SOURCE
+#include <errno.h>
 #include <getopt.h>
 
 #include "mem_tracker.h"
@@ -16,6 +16,8 @@
 void restore_term();
 
 struct termios old_settings;
+
+extern char *program_invocation_short_name;
 
 //Long command-line options
 static struct option long_options[] = {
@@ -27,9 +29,9 @@ static struct option long_options[] = {
 };
 
 void usage(){
-    fprintf(stderr, "Usage: mem_lookup [OPTIONS]\n"
+    fprintf(stderr, "Usage: %s [OPTIONS]\n"
                     "Display memory usage\n\n"
-                    " Options are:\n");
+                    " Options are:\n", program_invocation_short_name);
     fprintf(stderr, "  -g%-22s display percent free in a graphical manner\n", ", --graphical");
     fprintf(stderr, "  -p%-22s repeatedly poll the memory usage every 'M' seconds (Decimals permitted)\n", ", --poll=M");
     fprintf(stderr, "  -t%-22s percent change required to print the memory usage\n", ", --threshold=T");
