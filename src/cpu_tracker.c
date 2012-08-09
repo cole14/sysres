@@ -10,6 +10,9 @@
 
 #include "tracker.h"
 
+#define GET_PROC_ENT_STR_LENGTH(val) (sizeof(#val) + 1)
+static size_t proc_ent_str_len = GET_PROC_ENT_STR_LENGTH(ULONG_MAX);
+
 void *cpu_tracker(void *arg){
     char *cpu_line = NULL;
     size_t cpu_line_len = 0;
@@ -31,7 +34,7 @@ void *cpu_tracker(void *arg){
     //Allocate the char buffers for use in sscanf
     int i;
     for(i = 0; i < 5; i++){
-        proc_ents[i] = (char *)malloc(20 * sizeof(char));
+        proc_ents[i] = (char *)malloc(proc_ent_str_len * sizeof(char));
     }
 
     //Track the cpu usage
