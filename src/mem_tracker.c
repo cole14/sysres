@@ -6,7 +6,7 @@
 #include <inttypes.h>
 #include <limits.h>
 
-#include "mem_tracker.h"
+#include "tracker.h"
 
 void *mem_tracker(void *arg){
     long phys_pages = 0;

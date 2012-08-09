@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <getopt.h>
 
-#include "mem_tracker.h"
+#include "tracker.h"
 
 void restore_term();
 
@@ -29,13 +29,15 @@ static struct option long_options[] = {
 };
 
 void usage(){
-    fprintf(stderr, "Usage: %s [OPTIONS]\n"
-                    "Display memory usage\n\n"
+    fprintf(stderr, "Usage: %s [OPTIONS] [memory|cpu]\n"
+                    "Display system resource usage\n\n"
                     " Options are:\n", program_invocation_short_name);
     fprintf(stderr, "  -g%-22s display percent free in a graphical manner\n", ", --graphical");
     fprintf(stderr, "  -p%-22s repeatedly poll the memory usage every 'M' seconds (Decimals permitted)\n", ", --poll=M");
     fprintf(stderr, "  -t%-22s percent change required to print the memory usage\n", ", --threshold=T");
     fprintf(stderr, "  -h%-22s print usage\n\n", ", --help");
+    fprintf(stderr, "  %-24s track the system's memory usage\n", "memory");
+    fprintf(stderr, "  %-24s track the system's cpu usage\n", "cpu");
     fprintf(stderr, " Mandatory arguments for long options are for short options as well.\n");
     fprintf(stderr, " When in polling mode press 'q' to quit.\n");
 }
@@ -94,9 +96,23 @@ int main(int argc, char *argv[]){
         }
     }
 
-    // Spawn the memtracker thread
+    if(optind >= argc){
+        fprintf(stderr, "You must specify which resource to track: 'memory' or 'cpu'\n");
+        usage();
+        exit(EINVAL);
+    }
+
+    // Spawn the resource tracker thread
     pthread_t thr;
-    pthread_create(&thr, NULL, mem_tracker, track);
+    if(!strncmp(argv[optind], "cpu", strlen(argv[optind]) + 1)){
+        pthread_create(&thr, NULL, cpu_tracker, track);
+    }else if(!strncmp(argv[optind], "memory", strlen(argv[optind]) + 1)){
+        pthread_create(&thr, NULL, mem_tracker, track);
+    }else{
+        fprintf(stderr, "You must specify which resource to track: 'memory' or 'cpu'\n");
+        usage();
+        exit(EINVAL);
+    }
 
     if(track->poll && isatty(0)){
 
