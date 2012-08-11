@@ -7,7 +7,7 @@ SRCDIR=./src
 #Compilation Vars
 CC=gcc
 CFLAGS=-O3 -Wall -Werror
-LDFLAGS=-lpthread
+LDFLAGS=-pthread
 
 #List of source files 
 SRC_FILES=main.c print_funcs.c mem_tracker.c cpu_tracker.c
