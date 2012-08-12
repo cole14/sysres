@@ -1,9 +1,23 @@
 #include "print_funcs.h"
 
 #include <stdio.h>
+#include <time.h>
+#include <string.h>
 
-void print_free_default(const char *timestr, double percent_free){
-    fprintf(stdout, "%s: Free: %lf%%\n", timestr, percent_free);
+static const char *get_cur_time(){
+    time_t t = 0;
+    char * t_str = NULL;
+
+    // Get the current time
+    time(&t);
+    t_str = ctime(&t);
+    t_str[strlen(t_str)-1] = 0;
+
+    return t_str;
+}
+
+void print_free_default(double percent_free){
+    fprintf(stdout, "%s: Free: %lf%%\n", get_cur_time(), percent_free);
 }
 
 //100%  free: [--------------------|]
@@ -27,11 +41,11 @@ void print_free_default(const char *timestr, double percent_free){
 //<15%  free: [--|                  ]
 //<10%  free: [-|                   ]
 //<5%   free: [|                    ]
-void print_free_visual(const char *timestr, double percent_free){
+void print_free_visual(double percent_free){
     double vis_step;
     char step = '-';
 
-    fprintf(stdout, "%s: [", timestr);
+    fprintf(stdout, "%s: [", get_cur_time());
     for(vis_step = 5.0; vis_step < 110.0; vis_step += 5.0){
         if(vis_step > percent_free)
             step = (step == '-') ? '|' : ' ';

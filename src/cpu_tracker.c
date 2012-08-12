@@ -5,7 +5,6 @@
 #include <error.h>
 #include <errno.h>
 #include <string.h>
-#include <time.h>
 #include <stdio.h>
 
 #include "tracker.h"
@@ -57,9 +56,6 @@ void *cpu_tracker(void *arg){
     double percent = 0.0;
     double prev_percent = 0.0;
     double delta = 0.0;
-    // Used in printing the time
-    time_t t = 0;
-    char * t_str = NULL;
 
     // Options
     struct tracker_arg track = *(struct tracker_arg *)arg;
@@ -96,12 +92,7 @@ void *cpu_tracker(void *arg){
 
         delta = (prev_percent > percent ? prev_percent - percent : percent - prev_percent) / 100;
         if(delta > track.print_threshold){
-            // Get the current time
-            time(&t);
-            t_str = ctime(&t);
-            t_str[strlen(t_str)-1] = 0;
-
-            track.print_func(t_str, percent);
+            track.print_func(percent);
         }
 
         //Close /proc/stat

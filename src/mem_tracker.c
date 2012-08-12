@@ -1,7 +1,5 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <time.h>
-#include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -12,10 +10,6 @@ void *mem_tracker(void *arg){
     long phys_pages = 0;
     long avail_phys_pages = 0;
     long p_avail_phys_pages = LONG_MAX;
-
-    // Used in printing the time
-    time_t t = 0;
-    char * t_str = NULL;
 
     // Tracks the percent of memory which is free
     double percent = 0.0;
@@ -38,13 +32,8 @@ void *mem_tracker(void *arg){
         long diff = avail_phys_pages - p_avail_phys_pages;
         diff = (diff < 0) ? -diff : diff;
         if((double)diff / (double)phys_pages > track.print_threshold){
-            // Get the current time
-            time(&t);
-            t_str = ctime(&t);
-            t_str[strlen(t_str)-1] = 0;
-
             percent = 100*((double)avail_phys_pages/phys_pages);
-            track.print_func(t_str, percent);
+            track.print_func(percent);
 
             p_avail_phys_pages = avail_phys_pages;
         }
