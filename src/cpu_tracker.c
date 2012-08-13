@@ -10,14 +10,14 @@
 #include "tracker.h"
 
 #define GET_PROC_ENT_STR_LENGTH(val) (sizeof(#val) + 1)
-static size_t proc_ent_str_len = GET_PROC_ENT_STR_LENGTH(ULONG_MAX);
+static size_t proc_ent_str_len = GET_PROC_ENT_STR_LENGTH(ULLONG_MAX);
 
 static char *proc_ents[5];
 
-static void parse_cpu_info(FILE *proc_fp, unsigned long *usage, unsigned long *total){
+static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned long long *total){
     char *cpu_line = NULL;
     size_t cpu_line_len = 0;
-    unsigned long user, user_low, system, idle;
+    unsigned long long user, user_low, system, idle;
 
     //Read the cpu info line
     if(-1 == getline(&cpu_line, &cpu_line_len, proc_fp)){
@@ -32,10 +32,10 @@ static void parse_cpu_info(FILE *proc_fp, unsigned long *usage, unsigned long *t
     }
 
     errno = 0;
-    user     = strtoul(proc_ents[1], NULL, 10);
-    user_low = strtoul(proc_ents[2], NULL, 10);
-    system   = strtoul(proc_ents[3], NULL, 10);
-    idle     = strtoul(proc_ents[4], NULL, 10);
+    user     = strtoull(proc_ents[1], NULL, 10);
+    user_low = strtoull(proc_ents[2], NULL, 10);
+    system   = strtoull(proc_ents[3], NULL, 10);
+    idle     = strtoull(proc_ents[4], NULL, 10);
     if(errno != 0){
         error(-1, errno, "Failed parsing the CPU usage in /proc/stat");
     }
@@ -49,10 +49,10 @@ static void parse_cpu_info(FILE *proc_fp, unsigned long *usage, unsigned long *t
 
 void *cpu_tracker(void *arg){
     FILE *proc_fp = NULL;
-    unsigned long cur_usage = ULONG_MAX;
-    unsigned long cur_total = ULONG_MAX;
-    unsigned long prev_usage = ULONG_MAX;
-    unsigned long prev_total = ULONG_MAX;
+    unsigned long long cur_usage = ULLONG_MAX;
+    unsigned long long cur_total = ULLONG_MAX;
+    unsigned long long prev_usage = ULLONG_MAX;
+    unsigned long long prev_total = ULLONG_MAX;
     double percent = 0.0;
     double prev_percent = 0.0;
     double delta = 0.0;
@@ -72,10 +72,14 @@ void *cpu_tracker(void *arg){
     parse_cpu_info(proc_fp, &cur_usage, &cur_total);
     fclose(proc_fp);
 
-    fprintf(stdout, "Total uptime usage: %lf\n", (double)cur_usage / cur_total);
+    percent = 100*(double)cur_usage / cur_total;
+    fprintf(stdout, "Total uptime usage: %lf%%\n", percent);
 
     //Track the cpu usage
     do{
+        //Wait the polling amount
+        usleep(track.poll);
+
         //Open /proc/stat
         proc_fp = fopen("/proc/stat", "r");
         if(!proc_fp){ error(-1, errno, "Cannot open /proc/stat."); }
@@ -97,9 +101,6 @@ void *cpu_tracker(void *arg){
 
         //Close /proc/stat
         fclose(proc_fp);
-
-        //Wait the polling amount
-        usleep(track.poll);
     }while(track.poll);
 
     return NULL;
