@@ -14,6 +14,15 @@ static size_t proc_ent_str_len = GET_PROC_ENT_STR_LENGTH(ULLONG_MAX);
 
 static char *proc_ents[5];
 
+//Variables to track cpu usage
+static unsigned long long cur_usage = ULLONG_MAX;
+static unsigned long long cur_total = ULLONG_MAX;
+static unsigned long long prev_usage = 0;
+static unsigned long long prev_total = 0;
+static double percent = 0.0;
+static double prev_percent = 0.0;
+static char initialized = 0;
+
 static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned long long *total){
     char *cpu_line = NULL;
     size_t cpu_line_len = 0;
@@ -47,61 +56,53 @@ static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned lo
     return;
 }
 
-void *cpu_tracker(void *arg){
-    FILE *proc_fp = NULL;
-    unsigned long long cur_usage = ULLONG_MAX;
-    unsigned long long cur_total = ULLONG_MAX;
-    unsigned long long prev_usage = ULLONG_MAX;
-    unsigned long long prev_total = ULLONG_MAX;
-    double percent = 0.0;
-    double prev_percent = 0.0;
-    double delta = 0.0;
-
-    // Options
-    struct tracker_arg track = *(struct tracker_arg *)arg;
-
+static void one_time_cpu_init(){
     //Allocate the char buffers for use in sscanf
     int i;
     for(i = 0; i < 5; i++){
         proc_ents[i] = (char *)malloc(proc_ent_str_len * sizeof(char));
     }
 
-    //Get the initial CPU usage.
-    proc_fp = fopen("/proc/stat", "r");
+    //Get the total CPU usage.
+    FILE *proc_fp = fopen("/proc/stat", "r");
     if(!proc_fp){ error(-1, errno, "Cannot open /proc/stat."); }
     parse_cpu_info(proc_fp, &cur_usage, &cur_total);
     fclose(proc_fp);
 
-    percent = 100*(double)cur_usage / cur_total;
-    fprintf(stdout, "Total uptime usage: %lf%%\n", percent);
+    percent = 100*((double)(cur_usage - prev_usage)) / ((double)(cur_total - prev_total));
 
-    //Track the cpu usage
-    do{
-        //Wait the polling amount
-        usleep(track.poll);
+    initialized = 1;
+}
 
-        //Open /proc/stat
-        proc_fp = fopen("/proc/stat", "r");
-        if(!proc_fp){ error(-1, errno, "Cannot open /proc/stat."); }
+void *cpu_info_func(struct tracker_arg *arg){
+    FILE *proc_fp = NULL;
+    double delta = 0.0;
+    //Make sure any necessary resources are allocated
+    if(!initialized) one_time_cpu_init();
 
-        //Cache the old CPU usage.
-        prev_usage = cur_usage;
-        prev_total = cur_total;
+    // Options
+    struct tracker_arg *track = (struct tracker_arg *)arg;
 
-        //Calculate the CPU usage
-        parse_cpu_info(proc_fp, &cur_usage, &cur_total);
+    prev_usage = cur_usage;
+    prev_total = cur_total;
+    prev_percent = percent;
 
-        prev_percent = percent;
-        percent = 100*((double)(cur_usage - prev_usage)) / ((double)(cur_total - prev_total));
+    //Open /proc/stat
+    proc_fp = fopen("/proc/stat", "r");
+    if(!proc_fp){ error(-1, errno, "Cannot open /proc/stat."); }
 
-        delta = (prev_percent > percent ? prev_percent - percent : percent - prev_percent) / 100;
-        if(delta > track.print_threshold){
-            track.print_func(percent);
-        }
+    //Calculate the CPU usage
+    parse_cpu_info(proc_fp, &cur_usage, &cur_total);
 
-        //Close /proc/stat
-        fclose(proc_fp);
-    }while(track.poll);
+    percent = 100*((double)(cur_usage - prev_usage)) / ((double)(cur_total - prev_total));
+
+    delta = (prev_percent > percent ? prev_percent - percent : percent - prev_percent) / 100;
+    if(delta > track->print_threshold){
+        track->print_func(percent);
+    }
+
+    //Close /proc/stat
+    fclose(proc_fp);
 
     return NULL;
 }

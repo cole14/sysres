@@ -38,8 +38,11 @@ void usage(){
     fprintf(stderr, "  -h%-22s print usage\n\n", ", --help");
     fprintf(stderr, "  %-24s track the system's memory usage\n", "memory");
     fprintf(stderr, "  %-24s track the system's cpu usage\n", "cpu");
-    fprintf(stderr, " Mandatory arguments for long options are for short options as well.\n");
-    fprintf(stderr, " When in polling mode press 'q' to quit.\n");
+    fprintf(stderr, " Mandatory arguments for long options are for short options as well.\n\n");
+    fprintf(stderr, " Polling mode commands:\n");
+    fprintf(stderr, "  q - Quit.\n");
+    fprintf(stderr, "  c - Switch to CPU usage monitoring.\n");
+    fprintf(stderr, "  m - Switch to Memory usage monitoring.\n");
 }
 
 int main(int argc, char *argv[]){
@@ -102,17 +105,20 @@ int main(int argc, char *argv[]){
         exit(EINVAL);
     }
 
-    // Spawn the resource tracker thread
-    pthread_t thr;
+    //Determine which resource tracking we should begin with
     if(!strncmp(argv[optind], "cpu", strlen(argv[optind]) + 1)){
-        pthread_create(&thr, NULL, cpu_tracker, track);
+        track->info_func = cpu_info_func;
     }else if(!strncmp(argv[optind], "memory", strlen(argv[optind]) + 1)){
-        pthread_create(&thr, NULL, mem_tracker, track);
+        track->info_func = mem_info_func;
     }else{
         fprintf(stderr, "You must specify which resource to track: 'memory' or 'cpu'\n");
         usage();
         exit(EINVAL);
     }
+
+    // Spawn the resource tracker thread
+    pthread_t thr;
+    pthread_create(&thr, NULL, tracker, track);
 
     if(track->poll && isatty(0)){
 
@@ -134,13 +140,26 @@ int main(int argc, char *argv[]){
             exit(-1);
         }
 
+        //Get user input
         while(1){
             if(-1 == read(0, &buf, 1)){
                 perror("read");
                 exit(errno);
             }
-            if(buf == 'q'){
-                exit(0);
+
+            //Handle user commands
+            switch(buf){
+                case 'q':
+                    exit(0);
+                    break;
+                case 'm':
+                    printf("-----Memory Usage-----\n");
+                    track->info_func = mem_info_func;
+                    break;
+                case 'c':
+                    printf("-----CPU Usage-----\n");
+                    track->info_func = cpu_info_func;
+                    break;
             }
         }
     }else{
