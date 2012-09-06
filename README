@@ -1,0 +1,7 @@
+Author: Christopher Cole
+
+This is a simple command-line tool written in C which tracks and displays the CPU or Memory usage in the system. 
+
+To build: run 'make'
+
+To run: run 'bin/sysres [options]'
