@@ -43,6 +43,7 @@ void usage(){
     fprintf(stderr, "  q - Quit.\n");
     fprintf(stderr, "  c - Switch to CPU usage monitoring.\n");
     fprintf(stderr, "  m - Switch to Memory usage monitoring.\n");
+    fprintf(stderr, "  p <M> - Change the polling delay to be 'M' seconds (Decimals permitted).\n");
 }
 
 int main(int argc, char *argv[]){
@@ -152,13 +153,27 @@ int main(int argc, char *argv[]){
                 case 'q':
                     exit(0);
                     break;
-                case 'm':
+                case 'm'://Switch to Memory tracking
                     printf("-----Memory Usage-----\n");
                     track->info_func = mem_info_func;
                     break;
-                case 'c':
+                case 'c'://Switch to CPU tracking
                     printf("-----CPU Usage-----\n");
                     track->info_func = cpu_info_func;
+                    break;
+                case 'p'://Change polling time
+                    scanf("%lf", &poll_time);
+                    printf("-----Changing polling time to %.2lf seconds-----\n", poll_time);
+                    if(poll_time <= 0.0){
+                        printf("-----Change to %.2lf is invalid! Polling time must be positive-----\n", poll_time);
+                        break;
+                    }
+                    poll_time *= 1000000.0;
+                    if(poll_time > (double)ULONG_MAX){
+                        printf("-----Change to %.2lf is invalid! Polling time is too large-----\n", poll_time / 1000000.0);
+                        break;
+                    }
+                    track->poll = (unsigned long)(poll_time);
                     break;
             }
         }
