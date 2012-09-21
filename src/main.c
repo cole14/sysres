@@ -162,15 +162,18 @@ int main(int argc, char *argv[]){
                     track->info_func = cpu_info_func;
                     break;
                 case 'p'://Change polling time
-                    scanf("%lf", &poll_time);
-                    printf("-----Changing polling time to %.2lf seconds-----\n", poll_time);
+                    if(1 != scanf("%lf\n", &poll_time)){
+                        printf("-----Must specify a decimal number to change the polling delay-----\n");
+                        break;
+                    }
+                    printf("-----Changing polling delay to %.2lf seconds-----\n", poll_time);
                     if(poll_time <= 0.0){
-                        printf("-----Change to %.2lf is invalid! Polling time must be positive-----\n", poll_time);
+                        printf("-----Change to %.2lf is invalid! Polling delay must be positive-----\n", poll_time);
                         break;
                     }
                     poll_time *= 1000000.0;
                     if(poll_time > (double)ULONG_MAX){
-                        printf("-----Change to %.2lf is invalid! Polling time is too large-----\n", poll_time / 1000000.0);
+                        printf("-----Change to %.2lf is invalid! Polling delay is too large-----\n", poll_time / 1000000.0);
                         break;
                     }
                     track->poll = (unsigned long)(poll_time);
