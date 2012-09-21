@@ -162,9 +162,11 @@ int main(int argc, char *argv[]){
                     track->info_func = cpu_info_func;
                     break;
                 case 'p'://Change polling time
-                    if(1 != scanf("%lf\n", &poll_time)){
+                    while(1 != scanf("%lf", &poll_time)){
+                        if(1 != scanf("%c", &buf)){
+                            perror("Error occured when un-un-reading the problematic character from scanf's local buffer");
+                        }
                         printf("-----Must specify a decimal number to change the polling delay-----\n");
-                        break;
                     }
                     printf("-----Changing polling delay to %.2lf seconds-----\n", poll_time);
                     if(poll_time <= 0.0){
