@@ -32,12 +32,12 @@ void usage(){
     fprintf(stderr, "Usage: %s [OPTIONS] [memory|cpu]\n"
                     "Display system resource usage\n\n"
                     " Options are:\n", program_invocation_short_name);
-    fprintf(stderr, "  -g%-22s display percent free in a graphical manner\n", ", --graphical");
-    fprintf(stderr, "  -p%-22s repeatedly poll the memory usage every 'M' seconds (Decimals permitted)\n", ", --poll=M");
-    fprintf(stderr, "  -t%-22s percent change required to print the memory usage\n", ", --threshold=T");
-    fprintf(stderr, "  -h%-22s print usage\n\n", ", --help");
-    fprintf(stderr, "  %-24s track the system's memory usage\n", "memory");
-    fprintf(stderr, "  %-24s track the system's cpu usage\n", "cpu");
+    fprintf(stderr, "  -g%-22s display resource utilization in a graphical manner\n", ", --graphical");
+    fprintf(stderr, "  -p%-22s repeatedly poll the resource utilization every 'M' seconds (Decimals permitted)\n", ", --poll=M");
+    fprintf(stderr, "  -t%-22s percent change required to print the resource utilization\n", ", --threshold=T");
+    fprintf(stderr, "  -h%-22s print this usage statement\n\n", ", --help");
+    fprintf(stderr, "  %-24s track the system's memory utilization\n", "memory");
+    fprintf(stderr, "  %-24s track the system's cpu utilization\n", "cpu");
     fprintf(stderr, " Mandatory arguments for long options are for short options as well.\n\n");
     fprintf(stderr, " Polling mode commands:\n");
     fprintf(stderr, "  q - Quit.\n");
@@ -65,9 +65,11 @@ int main(int argc, char *argv[]){
     // Parse command-line args
     while(-1 != (opt = getopt_long(argc, argv, "gp:t:h", long_options, NULL))){
         switch(opt){
+            //Display the resource utilization using ascii graphics
             case 'g':
                 track->print_func = print_free_visual;
                 break;
+            //Set the polling delay in seconds
             case 'p':
                 poll_time = strtod(optarg, NULL);
                 if(poll_time <= 0.0){
@@ -83,6 +85,7 @@ int main(int argc, char *argv[]){
                 }
                 track->poll = (unsigned long)(poll_time);
                 break;
+            //Set the print threshold 
             case 't':
                 threshold = strtod(optarg, NULL);
                 if(threshold >= 100.0 || threshold <= 0.0){
@@ -92,6 +95,7 @@ int main(int argc, char *argv[]){
                 }
                 track->print_threshold = threshold / 100.0;
                 break;
+            //Print the usage statement
             case 'h':
             case '?':
                 usage();
