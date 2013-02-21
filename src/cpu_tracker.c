@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <float.h>
 #include <error.h>
 #include <errno.h>
 #include <string.h>
@@ -13,15 +14,6 @@
 static size_t proc_ent_str_len = GET_PROC_ENT_STR_LENGTH(ULLONG_MAX);
 
 static char *proc_ents[5];
-
-//Variables to track cpu usage
-static unsigned long long cur_usage = ULLONG_MAX;
-static unsigned long long cur_total = ULLONG_MAX;
-static unsigned long long prev_usage = 0;
-static unsigned long long prev_total = 0;
-static double percent = 0.0;
-static double prev_percent = 0.0;
-static char initialized = 0;
 
 static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned long long *total){
     char *cpu_line = NULL;
@@ -56,7 +48,7 @@ static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned lo
     return;
 }
 
-static void one_time_cpu_init(){
+static void one_time_cpu_init(struct tracker_arg *track, unsigned long long *cur_usage, unsigned long long *cur_total){
     //Allocate the char buffers for use in sscanf
     int i;
     for(i = 0; i < 5; i++){
@@ -66,22 +58,27 @@ static void one_time_cpu_init(){
     //Get the total CPU usage.
     FILE *proc_fp = fopen("/proc/stat", "r");
     if(!proc_fp){ error(-1, errno, "Cannot open /proc/stat."); }
-    parse_cpu_info(proc_fp, &cur_usage, &cur_total);
+    parse_cpu_info(proc_fp, cur_usage, cur_total);
     fclose(proc_fp);
 
-    percent = 100*((double)(cur_usage - prev_usage)) / ((double)(cur_total - prev_total));
-
-    initialized = 1;
+    unsigned long delay = track->poll ? track->poll : 10000;
+    usleep(delay);
 }
 
-void *cpu_info_func(struct tracker_arg *arg){
+void *cpu_info_func(struct tracker_arg *track){
     FILE *proc_fp = NULL;
     double delta = 0.0;
-    //Make sure any necessary resources are allocated
-    if(!initialized) one_time_cpu_init();
 
-    // Options
-    struct tracker_arg *track = (struct tracker_arg *)arg;
+    //Variables to track cpu usage
+    static unsigned long long prev_usage = 0;
+    static unsigned long long prev_total = 0;
+    static unsigned long long cur_usage = 0;
+    static unsigned long long cur_total = 0;
+    static double prev_percent = 0.0;
+    static double percent = DBL_MAX;
+    
+    //Make sure any necessary resources are allocated
+    if(!prev_usage) one_time_cpu_init(track, &cur_usage, &cur_total);
 
     prev_usage = cur_usage;
     prev_total = cur_total;

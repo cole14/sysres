@@ -6,11 +6,11 @@
 
 #include "tracker.h"
 
-static long p_avail_phys_pages = LONG_MAX;
 
 void *mem_info_func(struct tracker_arg *arg){
     long phys_pages = 0;
     long avail_phys_pages = 0;
+    static long p_avail_phys_pages = LONG_MAX;
 
     // Tracks the percent of memory which is free
     double percent_used = 0.0;
