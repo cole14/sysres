@@ -16,8 +16,8 @@ static const char *get_cur_time(){
     return t_str;
 }
 
-void print_free_default(double percent_free){
-    fprintf(stdout, "%s: Free: %lf%%\n", get_cur_time(), percent_free);
+void print_free_default(double percent_used){
+    fprintf(stdout, "%s: %lf%% Utilized\n", get_cur_time(), percent_used);
 }
 
 //100%  free: [--------------------|]
@@ -41,16 +41,16 @@ void print_free_default(double percent_free){
 //<15%  free: [--|                  ]
 //<10%  free: [-|                   ]
 //<5%   free: [|                    ]
-void print_free_visual(double percent_free){
+void print_free_visual(double percent_used){
     double vis_step;
     char step = '-';
 
     fprintf(stdout, "%s: [", get_cur_time());
     for(vis_step = 5.0; vis_step < 110.0; vis_step += 5.0){
-        if(vis_step > percent_free)
+        if(vis_step > percent_used)
             step = (step == '-') ? '|' : ' ';
         fprintf(stdout, "%c", step);
     }
-    fprintf(stdout, "] (%lf%% Free)\n", percent_free);
+    fprintf(stdout, "] (%lf%% Utilized)\n", percent_used);
 }
 

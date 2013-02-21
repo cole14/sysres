@@ -13,7 +13,7 @@ void *mem_info_func(struct tracker_arg *arg){
     long avail_phys_pages = 0;
 
     // Tracks the percent of memory which is free
-    double percent = 0.0;
+    double percent_used = 0.0;
 
     // Options
     struct tracker_arg *track = (struct tracker_arg *)arg;
@@ -23,8 +23,8 @@ void *mem_info_func(struct tracker_arg *arg){
 
     long diff = (avail_phys_pages > p_avail_phys_pages) ? avail_phys_pages - p_avail_phys_pages : p_avail_phys_pages  - avail_phys_pages;
     if((double)diff / (double)phys_pages > track->print_threshold){
-        percent = 100*((double)avail_phys_pages/phys_pages);
-        track->print_func(percent);
+        percent_used = 100.0 - (100.0*((double)avail_phys_pages/phys_pages));
+        track->print_func(percent_used);
     }
 
     p_avail_phys_pages = avail_phys_pages;
