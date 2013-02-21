@@ -6,10 +6,11 @@
 
 #include "tracker.h"
 
+static long p_avail_phys_pages = LONG_MAX;
+
 void *mem_info_func(struct tracker_arg *arg){
     long phys_pages = 0;
     long avail_phys_pages = 0;
-    long p_avail_phys_pages = LONG_MAX;
 
     // Tracks the percent of memory which is free
     double percent = 0.0;
@@ -20,14 +21,13 @@ void *mem_info_func(struct tracker_arg *arg){
     phys_pages = sysconf(_SC_PHYS_PAGES);
     avail_phys_pages = sysconf(_SC_AVPHYS_PAGES);
 
-    long diff = avail_phys_pages - p_avail_phys_pages;
-    diff = (diff < 0) ? -diff : diff;
+    long diff = (avail_phys_pages > p_avail_phys_pages) ? avail_phys_pages - p_avail_phys_pages : p_avail_phys_pages  - avail_phys_pages;
     if((double)diff / (double)phys_pages > track->print_threshold){
         percent = 100*((double)avail_phys_pages/phys_pages);
         track->print_func(percent);
-
-        p_avail_phys_pages = avail_phys_pages;
     }
+
+    p_avail_phys_pages = avail_phys_pages;
 
     return NULL;
 }
