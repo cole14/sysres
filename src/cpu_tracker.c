@@ -15,7 +15,7 @@ static size_t proc_ent_str_len = GET_PROC_ENT_STR_LENGTH(ULLONG_MAX);
 
 static char *proc_ents[5];
 
-static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned long long *total){
+static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned long long *total) {
     char *cpu_line = NULL;
     size_t cpu_line_len = 0;
     unsigned long long user, user_low, system, idle;
@@ -48,10 +48,10 @@ static void parse_cpu_info(FILE *proc_fp, unsigned long long *usage, unsigned lo
     return;
 }
 
-static void one_time_cpu_init(struct tracker_arg *track, unsigned long long *cur_usage, unsigned long long *cur_total){
+static void one_time_cpu_init(unsigned long long *cur_usage, unsigned long long *cur_total) {
     //Allocate the char buffers for use in sscanf
     int i;
-    for(i = 0; i < 5; i++){
+    for(i = 0; i < 5; i++) {
         proc_ents[i] = (char *)malloc(proc_ent_str_len * sizeof(char));
     }
 
@@ -61,11 +61,11 @@ static void one_time_cpu_init(struct tracker_arg *track, unsigned long long *cur
     parse_cpu_info(proc_fp, cur_usage, cur_total);
     fclose(proc_fp);
 
-    unsigned long delay = track->poll ? track->poll : 10000;
+    unsigned long delay = 10000;
     usleep(delay);
 }
 
-void *cpu_info_func(struct tracker_arg *track){
+void *cpu_info_func(print_func_t print_func, double print_threshold) {
     FILE *proc_fp = NULL;
     double delta = 0.0;
 
@@ -78,7 +78,7 @@ void *cpu_info_func(struct tracker_arg *track){
     static double percent = DBL_MAX;
     
     //Make sure any necessary resources are allocated
-    if(!prev_usage) one_time_cpu_init(track, &cur_usage, &cur_total);
+    if(!prev_usage) one_time_cpu_init(&cur_usage, &cur_total);
 
     prev_usage = cur_usage;
     prev_total = cur_total;
@@ -94,8 +94,8 @@ void *cpu_info_func(struct tracker_arg *track){
     percent = 100*((double)(cur_usage - prev_usage)) / ((double)(cur_total - prev_total));
 
     delta = (prev_percent > percent ? prev_percent - percent : percent - prev_percent) / 100;
-    if(delta > track->print_threshold){
-        track->print_func(percent);
+    if(delta > print_threshold){
+        print_func(percent);
     }
 
     //Close /proc/stat

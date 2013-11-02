@@ -7,10 +7,10 @@ SRCDIR=./src
 #Compilation Vars
 CC=gcc
 CFLAGS=-O3 -Wall -Werror
-LDFLAGS=-pthread
+LDFLAGS=
 
 #List of source files 
-SRC_FILES=main.c print_funcs.c mem_tracker.c cpu_tracker.c tracker.c
+SRC_FILES=main.c print_funcs.c mem_tracker.c cpu_tracker.c
 #List of generated object files
 OBJS = $(patsubst %.c, $(BINDIR)/%.o, $(SRC_FILES))
 #Final executable
